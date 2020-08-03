@@ -28,7 +28,7 @@ data Report = Report
 covidUrl :: Int -> String
 covidUrl id =
     "https://www.unicamp.br/unicamp/coronavirus/boletim-"
-        ++ (show id) ++ "-atendimento-coronavirus"
+        ++ show id ++ "-atendimento-coronavirus"
 
 openReport :: Int -> IO (Either HttpException T.Text)
 openReport =
@@ -80,20 +80,20 @@ rightToJust _         = Nothing
 
 lastInt :: [Tag T.Text] -> Maybe Int
 lastInt tags =
-    fst <$> (rightToJust $ (decimal . lastTdText) tags)
+    fst <$> rightToJust ((decimal . lastTdText) tags)
 
 dbg :: (Show a) => String -> a -> a
 dbg s a =
-    trace (s ++ ": " ++ (show a)) a
+    trace (s ++ ": " ++ show a) a
 
 takeBetween :: T.Text -> [Tag T.Text] -> [Tag T.Text]
 takeBetween name =
-    takeWhile (~/= TagClose name) . dropWhile (~/= (TagOpen name []))
+    takeWhile (~/= TagClose name) . dropWhile (~/= TagOpen name [])
 
 parseTextReport :: T.Text -> Maybe Report
 parseTextReport text =
     let rows
-            = (fmap $ takeBetween "tr")
+            = fmap (takeBetween "tr")
             $ partitions (~== ("<tr>" :: String))
             . dropWhile (~/= ("<tbody>" :: String))
             . parseTags
@@ -101,7 +101,7 @@ parseTextReport text =
         header = lastTdText $ head rows
         deaths = lastInt =<< find (labelIsDeath . firstTdText) rows
         cases =  lastInt =<< find (labelIsCase . firstTdText) rows
-        in Report (fromMaybe 0 deaths) (fromMaybe 0 cases) <$> (parseHeader header)
+        in Report (fromMaybe 0 deaths) (fromMaybe 0 cases) <$> parseHeader header
 
 parseReport :: Int -> IO (Maybe Report)
 parseReport id = do
@@ -113,8 +113,8 @@ parseReport id = do
 
 main :: IO ()
 main = do
-    id     <- (read . head) <$> getArgs
+    id     <- read . head <$> getArgs
     report <- parseReport id
-    putStrLn $ show report
+    print report
 
 -- vim: set sw=4 et sta:
